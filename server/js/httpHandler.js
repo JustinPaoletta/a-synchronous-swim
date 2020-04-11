@@ -38,18 +38,15 @@ module.exports.router = (req, res, next = ()=>{}) => {
       'access-control-allow-headers': "content-type, accept",
       'access-control-max-age': 10,
       'Content-Type': "image/jpeg"
-    }
+    };
+
     res.writeHead(200, headerobj);
 
-    //construct the path
     let filename = path.join('.', 'img', 'background.jpg')
-    //open the read stream
     var readStream = fs.createReadStream(filename);
-    // pipe the read stream into the response
+
     readStream.on('open', function () {
       readStream.pipe(res);
-      //res.end();
-      //next();
     });
 
     readStream.on('error', function(err) {
@@ -57,8 +54,9 @@ module.exports.router = (req, res, next = ()=>{}) => {
       next();
     });
 
-    readStream.on('finish', () => {
+    readStream.on('end', () => {
       console.log('Finished streaming!');
+      res.end()
       next();
     });
 
@@ -67,7 +65,6 @@ module.exports.router = (req, res, next = ()=>{}) => {
     res.end();
     next();
   } else {
-    //console.log('this is the url that gets 404ed', req.url)
     res.writeHead(404, headers);
     res.end();
     next();
