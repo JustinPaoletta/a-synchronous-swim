@@ -47,15 +47,18 @@ module.exports.router = (req, res, next = ()=>{}) => {
     var readStream = fs.createReadStream(filename);
     // pipe the read stream into the response
     readStream.on('open', function () {
-      console.log('we made it ------------------------------')
       readStream.pipe(res);
-      res.end();
-      next();
+      //res.end();
+      //next();
     });
 
     readStream.on('error', function(err) {
-      console.log('not here xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
       res.end(err);
+      next();
+    });
+
+    readStream.on('finish', () => {
+      console.log('Finished streaming!');
       next();
     });
 
