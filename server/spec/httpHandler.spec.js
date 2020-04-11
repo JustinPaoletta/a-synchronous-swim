@@ -22,20 +22,22 @@ describe('server responses', () => {
   });
 
   it('should respond to a GET request for a swim command', (done) => {
+    // mock GET req
     let {req, res} = server.mock('/', 'GET');
-
+    // router handles our GET req
     httpHandler.router(req, res);
     expect(res._responseCode).to.equal(200);
     expect(res._ended).to.equal(true);
-    expect(res._data.toString()).to.satisfy((str) => {return (str === 'up' || str === 'down' || str === 'left' || str === 'right')});
+    // OR || in Chai
+    expect(res._data.toString()).to.satisfy((str) => {return (str === 'up' || str === 'down' || str === 'left' || str === 'right' || str === 'rest')});
 
     done();
 
   });
 
-  xit('should respond with 404 to a GET request for a missing background image', (done) => {
-    httpHandler.backgroundImageFile = path.join('.', 'spec', 'missing.jpg');
-    let {req, res} = server.mock('FILL_ME_IN', 'GET');
+  it('should respond with 404 to a GET request for a missing background image', (done) => {
+    httpHandler.backgroundImageFile = path.join('.', 'spec', 'missing.jpg'); ///why use this instead of some garbage endpoint?
+    let {req, res} = server.mock(httpHandler.backgroundImageFile, 'GET');
 
     httpHandler.router(req, res, () => {
       expect(res._responseCode).to.equal(404);
@@ -44,12 +46,17 @@ describe('server responses', () => {
     });
   });
 
-  xit('should respond with 200 to a GET request for a present background image', (done) => {
-    // write your test here
-    done();
+  it('should respond with 200 to a GET request for a present background image', (done) => {
+    let {req, res} = server.mock('/background.jpg', 'GET');
+
+    httpHandler.router(req, res, () => {
+      expect(res._responseCode).to.equal(200);
+      expect(res._ended).to.equal(true);
+      done();
+    });
   });
 
-  var postTestFile = path.join('.', 'spec', 'water-lg.jpg');
+  var postTestFile = path.join('.', 'spec', 'water-lg.jpg'); //this file needs to be supplied for the post
 
   xit('should respond to a POST request to save a background image', (done) => {
     fs.readFile(postTestFile, (err, fileData) => {

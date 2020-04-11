@@ -6,19 +6,28 @@
   // TODO: build the swim command fetcher here
   //
 
-  //name func
+
+  // Build up ajax function with params (type/url/success/failure)
+  // GET Request returning the res data (swim instruction)
   const ajaxGetSwimInstruction = () => {
-    // ajax
+
     $.ajax({
-      // type get url serverUrl success move swimmers / error swimmer drowned
       type: 'GET',
       url: serverUrl,
-      success: (data) => {console.log(`Swim ${data}!`); SwimTeam.move(data);},
+      success: (data) => {
+        if (data === "rest") {
+          console.log(`Swimmer needs a ${data}`)
+        } else {
+          console.log(`Swim ${data}!`);
+          SwimTeam.move(data);
+        }
+      },
       failure: () => {console.log(`Swim! Swim!`)}
     });
   }
 
-  setInterval(ajaxGetSwimInstruction, 500);
+  // Call GET req every X milliseconds
+  setInterval(ajaxGetSwimInstruction, 1000);
 
   /////////////////////////////////////////////////////////////////////
   // The ajax file uplaoder is provided for your convenience!
