@@ -40,7 +40,6 @@ module.exports.router = (req, res, next = ()=>{}) => {
       'Content-Type': "image/jpeg"
     };
 
-    res.writeHead(200, headerobj);
 
     let filename = path.join('.', 'img', 'background.jpg')
     var readStream = fs.createReadStream(filename);
@@ -50,13 +49,39 @@ module.exports.router = (req, res, next = ()=>{}) => {
     });
 
     readStream.on('error', function(err) {
+      res.writeHead(400, headerobj);
       res.end(err);
       next();
     });
 
     readStream.on('end', () => {
       console.log('Finished streaming!');
+      res.writeHead(200, headerobj);
       res.end()
+      next();
+    });
+
+  }else if ( req.method === 'POST' && req.url === '/background.jpg' ){
+
+
+    let filename = path.join('.', 'img', 'background.jpg')
+    var writeStream = fs.createWriteStream(filename);  // source or destination?
+
+    req.on('open', function(){
+      req.pipe(writeStream);
+    })
+
+    req.on('end', () => {
+      console.log('Finished streaming!'); // reasonably sure the multipart file processing will happen here
+      res.writeHead(201, headers);
+      res.end()
+      next();
+    });
+
+    writeStream.on('error', function(err) {
+      res.writeHead(400, headers);
+      console.log(err);
+      res.end(err);
       next();
     });
 
