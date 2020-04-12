@@ -19,8 +19,14 @@ module.exports.backgroundImageFile = path.join('.', 'background.jpg');
 // router function takes in the req and serves up a response
 module.exports.router = (req, res, next = ()=>{}) => {
   console.log('Serving request type ' + req.method + ' for url ' + req.url);
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200, headers);
+    res.end();
+    next();
+  }
   // handle get request
-  if ( req.method === 'GET' && req.url === '/' ) {
+  else if ( req.method === 'GET' && req.url === '/' ) {
     res.writeHead(200, headers);
     let deq = messQueue.dequeue();
     if (deq === undefined) {
@@ -61,34 +67,30 @@ module.exports.router = (req, res, next = ()=>{}) => {
       next();
     });
 
-  }else if ( req.method === 'POST' && req.url === '/background.jpg' ){
+  } else if ( req.method === 'POST' && req.url === '/background.jpg' ){
 
 
-    let filename = path.join('.', 'img', 'background.jpg')
-    var writeStream = fs.createWriteStream(filename);  // source or destination?
+    let filename = path.join('.', 'img', 'background.jpg');
 
-    req.on('open', function(){
-      req.pipe(writeStream);
+    let body = Buffer.alloc(0);
+
+    req.on('data', (chunk) => {
+      body = Buffer.concat([body, chunk]);
+      console.log(body, "THE BUFFER");
+
     })
-
+    // let testing = multipart.getFile(body).data;
     req.on('end', () => {
-      console.log('Finished streaming!'); // reasonably sure the multipart file processing will happen here
-      res.writeHead(201, headers);
-      res.end()
-      next();
+      var file = multipart.getFile(body);
+      console.log(file, "FILE")
+      fs.writeFile(filename, file.data /*FILEDATA*/, (err) => {
+        res.writeHead(err ? 400 : 201, headers);
+        res.end();
+        next();
+      });
     });
 
-    writeStream.on('error', function(err) {
-      res.writeHead(400, headers);
-      console.log(err);
-      res.end(err);
-      next();
-    });
 
-  } else if (req.method === 'OPTIONS') {
-    res.writeHead(200, headers);
-    res.end();
-    next();
   } else {
     res.writeHead(404, headers);
     res.end();
@@ -96,3 +98,45 @@ module.exports.router = (req, res, next = ()=>{}) => {
   }
 
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //req is our readable stream and we pipe it to the writeStream
+    // so we should pipe it after reading it but inside of req.on  req.pipe is never called
+    // req.write(writeStream);
+
+    // req.on('readable', function(){
+    //   console.log('trying to pipe------------------------------');
+    // })
+
+    // writeStream.on('pipe', () => console.log('Writing pipe started!'));
+
+    // writeStream.on('finish', () => {
+    //   console.log('Finished writing!'); // reasonably sure the multipart file processing will happen here
+    //   res.writeHead(201, headers);
+    //   res.end()
+    //   next();
+    // });
+
+    // writeStream.on('error', function(err) {
+    //   res.writeHead(400, headers);
+    //   console.log(err);
+    //   res.end(err);
+    //   next();
+    // });
